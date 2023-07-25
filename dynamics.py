@@ -1,10 +1,6 @@
 import casadi as ca
 from helpers import smooth_norm
-from params import rocket_height, rocket_width
-
-# Model Parameters
-g = ca.vertcat([-3.7114, 0])
-alpha = 4.53e-4  # Larger alpha -> losing more mass, since mdot decreases
+from params import rocket_height, rocket_width, alpha, g
 
 
 def f(x, u):
@@ -60,36 +56,3 @@ def f_tilde(x, u):
     )
 
     return t_f * xdot
-
-# def f_tilde(x, u):
-#     """
-#     This returns f-tilde, i.e. the augmented, time-scaled dynamics
-#     :param x: 8 dimensional state vector
-#     :param u: 3 dimensional control
-#     """
-#     # Unpack/name var's
-#     r = x[0:3]
-#     v = x[3:6]
-#     m = x[6]
-#     t_f = x[7]
-#
-#     a = g + u / m
-#
-#     mdot = -alpha * smooth_norm(u)
-#
-#     xdot = ca.vertcat(
-#         v[0],
-#         v[1],
-#         v[2],
-#         a[0],
-#         a[1],
-#         a[2],
-#         mdot,
-#         0
-#     )
-#
-#     # Apply time-rescaling
-#     xdot = t_f * xdot
-#
-#     return xdot
-#

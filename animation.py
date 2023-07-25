@@ -13,12 +13,16 @@ def rocket_trajectory(height, width, theta):
 
     return x, y
 
-def anchor_point(x, y):
-    """ Given current position of center of mass, returns anchor point for rectangle"""
-    return (x - rocket_width/2, y - rocket_height/2)
+def anchor_point(x, y, theta):
+    """ Given current position of center of mass and theta, returns anchor point for rectangle
+    :param theta:
+    """
+    dx = (rocket_height * np.sin(theta) + rocket_width * np.cos(theta)) / 2
+    dy = (rocket_height * np.cos(theta) - rocket_width * np.sin(theta)) / 2
+    return (x - dx, y - dy)
 
 def trans_angle(theta):
-    """ Faithfully transforms theta from model convention to match matplotlib Rectangle convention"""
+    """ Transforms theta from model convention to match matplotlib Rectangle convention"""
     return -theta * 180 / np.pi
 
 def animate_rocket_trajectory(x, y, theta):
@@ -44,7 +48,7 @@ def animate_rocket_trajectory(x, y, theta):
     ax.set_xlim(min(x) - 10, max_x + 10)
     ax.set_ylim(0, max_y)
 
-    rocket = plt.Rectangle(anchor_point(x[0], y[0]), rocket_width, rocket_height, fc='r')  # Create the rocket rectangle
+    rocket = plt.Rectangle(anchor_point(x[0], y[0], theta[0]), rocket_width, rocket_height, fc='r')  # Create the rocket rectangle
     ax.add_patch(rocket)
 
     # Create the zoomed-in inset axes
@@ -58,18 +62,18 @@ def animate_rocket_trajectory(x, y, theta):
     axins.set_yticks([])
 
     # Plot the rocket in the inset axes
-    rocket_inset = plt.Rectangle(anchor_point(x[0], y[0]), rocket_width, rocket_height, fc='r')
+    rocket_inset = plt.Rectangle(anchor_point(x[0], y[0], theta[0]), rocket_width, rocket_height, fc='r')
     axins.add_patch(rocket_inset)
 
     # Mark the region of the zoomed-in inset in the main axes
     #mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
 
     def update(frame):
-        rocket.set_xy(anchor_point(x[frame], y[frame]))  # Update rocket position
+        rocket.set_xy(anchor_point(x[frame], y[frame], theta[frame]))  # Update rocket position
         rocket.set_angle(trans_angle(theta[frame]))  # Set rocket orientation
 
         # Update the position of the rocket in the inset axes
-        rocket_inset.set_xy(anchor_point(x[frame], y[frame]))
+        rocket_inset.set_xy(anchor_point(x[frame], y[frame], theta[frame]))
         rocket_inset.set_angle(trans_angle(theta[frame]))
 
         # Update the zoomed-in region based on the rocket's position

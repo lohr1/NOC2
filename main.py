@@ -9,13 +9,12 @@ from params import r0, v0, m_wet, max_thrust, m_dry, theta0, theta_dot0, rf, vf,
 
 from animation import animate_rocket_trajectory
 
-# Trying with large T before time-scaling
-TIME_SCALING = True
+TIME_SCALING = True  # Adds final time as state-variable and scales dynamics accordingly
 
 
 opti = ca.Opti()
 
-N = 100  # Control intervals
+N = 200  # Control intervals
 if not TIME_SCALING:
     T = 30  # Total time (seconds)
 
@@ -41,11 +40,9 @@ if TIME_SCALING:
 
 # Controls
 U = opti.variable(2, N)
-u1 = U[0, :]  # Force applied by main booster - Always in direction of rocket!!!
+u1 = U[0, :]  # Force applied by main booster - Always in direction of rocket
 u2 = U[1, :]  # Force applied by side boosters - Always perpendicular to rocket, applied at the very end
 
-# Guess initial thrust
-#opti.set_initial(U[0, :], 0.5 * max_thrust)
 
 # Dynamics
 x = ca.MX.sym('x', (X_n, 1))
@@ -77,7 +74,11 @@ for col_i in range(U.shape[1]):
     opti.subject_to(thrust <= max_thrust)
 
     # Forcing mass to decrease
-    opti.subject_to(m[col_i] > m[col_i + 1])
+    opti.subject_to(m[col_i] > m[col_i + 1])  # NOTE: this should be automatically enforced by the dynamics!
+    # So it is not stated in discrete NLP, as the dynamics should guarantee this.
+    # It is included here because:
+    #  Somehow, the solver continually produced iterates in which the mass increased, so the above constraint
+    #  was added to help the solver converge to a reasonable solution
 
 # Main booster can only push:
 opti.subject_to(U[0, :] >= 0)
@@ -99,34 +100,19 @@ opti.subject_to(r[:, -1] == rf)
 opti.subject_to(v[:, -1] == vf)
 opti.subject_to(theta[-1] == thetaf)
 opti.subject_to(theta_dot[-1] == theta_dotf)
-#opti.subject_to(r[:, -1] <= ca.vertcat(1, 0, 0))
-# opti.subject_to(r[:, -1] >= ca.vertcat(0, 0, 0))
-#opti.subject_to(r[0, -1] <= 1)
+
 
 # Trajectory constraints
-#opti.subject_to(r[1, :] >= -500)
 opti.subject_to(r[0, :] >= 0)
-#opti.subject_to(r[0, :] <= 1500)
 
-opti.subject_to(theta <= np.pi/2)
-opti.subject_to(-np.pi/2 <= theta)
 
-opti.subject_to(opti.bounded(-0.2, theta_dot, 0.2))
 
-#opti.subject_to(0 <= r[0, :])
-# for c in range(N+1):
-#     opti.subject_to(r[0, c] > 600 * (r[1, c] <= 1000) * (r[1, c] >= 750))
 
-#opti.minimize(-m[-1])
-#opti.minimize(-m[-1] + r[0, -1] ** 2)
+
+# Constraints on theta
+opti.subject_to(opti.bounded(-np.pi/2, theta, np.pi/2))  # Rocket may not point downwards
+
 opti.minimize(-m[-1])
-#opti.minimize(-m[-1]**2)
-#opti.minimize((-m[-1])**3)
-
-#opti.minimize(v[0, -1] ** 2 + r[0, -1] ** 2)
-#opti.minimize(-m[-1])
-# opti.minimize(ca.power(U, 2))
-# opti.minimize(f)
 
 # Generate lin. interpolation guess
 X0 = ca.vertcat(
@@ -160,7 +146,7 @@ Xg = np.linspace(X0.full().flatten(), Xf.full().flatten(), N + 1)
 
 opti.set_initial(X, Xg.T)
 
-s_opts = {"max_iter": 400}  # To help debugging go faster i.e. to access opti.debug.sol quicker
+s_opts = {"max_iter": 600}  # To help debugging go faster i.e. to access opti.debug.sol quicker
 opti.solver('ipopt', {}, s_opts)
 
 sol = opti.solve()
@@ -173,28 +159,3 @@ y = sol.value(r[0, :])
 theta = sol.value(theta)
 
 animate_rocket_trajectory(x, y, theta)
-
-# %%
-#
-# Plot z vs x
-plt.plot(sol.value(r[1, :]), sol.value(r[0, :]))
-
-# Add labels and title
-plt.xlabel('x-pos')
-plt.ylabel('Altitude')
-
-# Display the plot
-plt.show()
-
-
-
-# Plot mass
-steps = range(N + 1)
-plt.plot(steps, sol.value(m))
-
-# Add labels and title
-plt.xlabel('Step')
-plt.ylabel('Mass')
-
-# Display the plot
-plt.show()
