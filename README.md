@@ -1,2 +1,2 @@
 # NOC2
-Vertical-landing model
+Final implementation and submission of the vertical-landing model.
