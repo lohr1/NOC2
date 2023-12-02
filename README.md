@@ -4,4 +4,4 @@ This is the final code of an optional project (worth 3 ECTS) completed for the c
 
 The project report may be found in the file: 'NOC_Report.pdf'
 
-The grade given for this project was a 1.3. Due to examination regulations, this grade is not visible on the official transcript, and only appears as a passing grade ("BE" for Bestanden).
+The grade given for this project was a 1.3. Due to examination regulations, this grade only appears on my transcript as a passing grade ("BE" for Bestanden).
