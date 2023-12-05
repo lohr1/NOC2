@@ -1,6 +1,6 @@
 # NOC2
 
-This is the final code of an optional project (worth 3 ECTS) completed for the course Numerical Optimal Control with Prof. Moritz Diehl during SS23 at the University of Freiburg.
+This is the rocket vertical landing project, an optional project (worth 3 ECTS) completed for the course Numerical Optimal Control with Prof. Moritz Diehl during SS23 at the University of Freiburg.
 
 Grade: 1.3. 
 
